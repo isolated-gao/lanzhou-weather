@@ -30,7 +30,32 @@
     pointer-events: none;
   }
 
-  .container {
+  .weather-effects { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.cloud-bg { position: absolute; inset: 0; opacity: 0; transition: opacity 1.5s ease; }
+.cloud-bg.active { opacity: 1; }
+.cloud-bg > div { position: absolute; background: rgba(255,255,255,0.12); border-radius: 50%; animation: cloudFloat linear infinite; }
+.cloud-bg-1 { width: 180px; height: 60px; top: 8%; left: -200px; animation-duration: 30s; }
+.cloud-bg-2 { width: 240px; height: 70px; top: 16%; left: -300px; animation-duration: 40s; animation-delay: -8s; }
+.cloud-bg-3 { width: 150px; height: 50px; top: 25%; left: -150px; animation-duration: 35s; animation-delay: -15s; }
+@keyframes cloudFloat { 0% { transform: translateX(0); } 100% { transform: translateX(calc(100vw + 400px)); } }
+.rain-container { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease; }
+.rain-container.active { opacity: 1; }
+.rain-drop { position: absolute; width: 1.5px; background: linear-gradient(180deg, transparent, rgba(174,194,224,0.5)); animation: rainFall linear infinite; border-radius: 0 0 2px 2px; }
+@keyframes rainFall { 0% { transform: translateY(-10px); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(100vh); opacity: 0.2; } }
+.snow-container { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease; }
+.snow-container.active { opacity: 1; }
+.snow-flake { position: absolute; width: 6px; height: 6px; background: rgba(255,255,255,0.7); border-radius: 50%; animation: snowFall linear infinite; }
+@keyframes snowFall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0.3; } }
+.fog-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(200,200,200,0.08), transparent); opacity: 0; transition: opacity 2s ease; }
+.fog-overlay.active { opacity: 1; animation: fogSway 8s ease-in-out infinite alternate; }
+@keyframes fogSway { 0% { transform: translateX(-5%); } 100% { transform: translateX(5%); } }
+.sun-rays { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease; }
+.sun-rays.active { opacity: 1; background: radial-gradient(circle at 70% 20%, rgba(255,200,50,0.08), transparent 50%); animation: sunPulse 4s ease-in-out infinite; }
+@keyframes sunPulse { 0%,100% { opacity: 0.3; } 50% { opacity: 0.7; } }
+.lightning { position: absolute; inset: 0; opacity: 0; }
+.lightning.active { animation: lightningFlash 8s ease-in-out infinite; }
+@keyframes lightningFlash { 0%,95%,100% { opacity: 0; } 96% { opacity: 0.9; background: rgba(255,255,255,0.9); } 97% { opacity: 0; } 98% { opacity: 0.6; background: rgba(255,255,255,0.6); } 99% { opacity: 0; } }
+.container {
     width: 100%;
     max-width: 520px;
     position: relative;
@@ -332,7 +357,7 @@
 </head>
 <body>
 
-<div class="container">
+<div class="weather-effects"><div class="rain-container" id="rainContainer"></div><div class="snow-container" id="snowContainer"></div><div class="fog-overlay" id="fogOverlay"></div><div class="cloud-bg" id="cloudBg">  <div class="cloud-bg-1"></div>  <div class="cloud-bg-2"></div>  <div class="cloud-bg-3"></div></div><div class="sun-rays" id="sunRays"></div><div class="lightning" id="lightning"></div></div><div class="container">
 
   <!-- Brand -->
   <div class="brand">
@@ -442,6 +467,17 @@ const WMO_CODES = {
   99: { desc: '雷阵雨+冰雹', emoji: '⛈️' },
 };
 
+function spawnRain(){const c=document.getElementById("rainContainer");c.innerHTML="";for(let i=0;i<80;i++){const d=document.createElement("div");d.className="rain-drop";d.style.left=Math.random()*100+"%";d.style.height=(10+Math.random()*20)+"px";d.style.animationDuration=(0.4+Math.random()*0.4)+"s";d.style.animationDelay=Math.random()*1.5+"s";c.appendChild(d);}}
+function spawnSnow(){const c=document.getElementById("snowContainer");c.innerHTML="";for(let i=0;i<60;i++){const d=document.createElement("div");d.className="snow-flake";d.style.left=Math.random()*100+"%";d.style.width=d.style.height=(3+Math.random()*5)+"px";d.style.animationDuration=(3+Math.random()*4)+"s";d.style.animationDelay=Math.random()*5+"s";d.style.opacity=0.3+Math.random()*0.5;c.appendChild(d);}}
+function setWeatherFx(code,isDay){const ids={r:"rainContainer",s:"snowContainer",f:"fogOverlay",c:"cloudBg",u:"sunRays",l:"lightning"};
+for(const k of Object.values(ids)){document.getElementById(k).classList.remove("active");}
+if(code===0&&isDay){document.getElementById(ids.u).classList.add("active");}
+if(code>=1&&code<=3){document.getElementById(ids.c).classList.add("active");}
+if(code===2){document.getElementById(ids.u).classList.add("active");document.getElementById(ids.c).classList.add("active");}
+if(code===45||code===48){document.getElementById(ids.f).classList.add("active");document.getElementById(ids.c).classList.add("active");}
+if((code>=51&&code<=57)||(code>=61&&code<=67)||(code>=80&&code<=82)){spawnRain();document.getElementById(ids.r).classList.add("active");document.getElementById(ids.c).classList.add("active");}
+if((code>=71&&code<=77)||(code>=85&&code<=86)){spawnSnow();document.getElementById(ids.s).classList.add("active");document.getElementById(ids.c).classList.add("active");}
+if(code>=95&&code<=99){spawnRain();document.getElementById(ids.r).classList.add("active");document.getElementById(ids.c).classList.add("active");document.getElementById(ids.l).classList.add("active");}}
 function getWMO(code) {
   return WMO_CODES[code] || { desc: '未知', emoji: '🌡️' };
 }
@@ -511,7 +547,7 @@ async function fetchWeather() {
 
     // Current weather
     const wmoCur = getWMO(cur.weather_code);
-    setWeatherBg(cur.weather_code, cur.is_day);
+    setWeatherBg(cur.weather_code, cur.is_day); setWeatherFx(cur.weather_code, cur.is_day);
     document.getElementById('tempNow').textContent = Math.round(cur.temperature_2m);
     document.getElementById('feelsLike').textContent =
       `体感温度 ${Math.round(cur.apparent_temperature)}°C`;
