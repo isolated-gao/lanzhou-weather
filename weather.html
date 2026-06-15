@@ -33,10 +33,12 @@
   .weather-effects { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 .cloud-bg { position: absolute; inset: 0; opacity: 0; transition: opacity 1.5s ease; }
 .cloud-bg.active { opacity: 1; }
-.cloud-bg > div { position: absolute; background: rgba(255,255,255,0.12); border-radius: 50%; animation: cloudFloat linear infinite; }
+.cloud-bg > div { position: absolute; background: rgba(200,210,230,0.18); border-radius: 50%; animation: cloudFloat linear infinite; transition: all 0.5s; box-shadow: 0 0 40px rgba(200,210,230,0.08); }
 .cloud-bg-1 { width: 180px; height: 60px; top: 8%; left: -200px; animation-duration: 30s; }
 .cloud-bg-2 { width: 240px; height: 70px; top: 16%; left: -300px; animation-duration: 40s; animation-delay: -8s; }
 .cloud-bg-3 { width: 150px; height: 50px; top: 25%; left: -150px; animation-duration: 35s; animation-delay: -15s; }
+.cloud-bg-4 { width: 200px; height: 55px; top: 32%; left: -250px; background: rgba(180,195,215,0.15); animation-duration: 38s; animation-delay: -5s; }
+.cloud-bg-5 { width: 130px; height: 45px; top: 40%; left: -180px; background: rgba(190,205,225,0.12); animation-duration: 32s; animation-delay: -20s; }
 @keyframes cloudFloat { 0% { transform: translateX(0); } 100% { transform: translateX(calc(100vw + 400px)); } }
 .rain-container { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease; }
 .rain-container.active { opacity: 1; }
@@ -46,6 +48,8 @@
 .snow-container.active { opacity: 1; }
 .snow-flake { position: absolute; width: 6px; height: 6px; background: rgba(255,255,255,0.7); border-radius: 50%; animation: snowFall linear infinite; }
 @keyframes snowFall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0.3; } }
+.cloud-bg.heavy .cloud-bg-1, .cloud-bg.heavy .cloud-bg-2, .cloud-bg.heavy .cloud-bg-3 { background: rgba(120,140,170,0.25); }
+.cloud-bg.heavy .cloud-bg-4, .cloud-bg.heavy .cloud-bg-5 { background: rgba(100,130,160,0.2); }
 .fog-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(200,200,200,0.08), transparent); opacity: 0; transition: opacity 2s ease; }
 .fog-overlay.active { opacity: 1; animation: fogSway 8s ease-in-out infinite alternate; }
 @keyframes fogSway { 0% { transform: translateX(-5%); } 100% { transform: translateX(5%); } }
@@ -472,12 +476,12 @@ function spawnSnow(){const c=document.getElementById("snowContainer");c.innerHTM
 function setWeatherFx(code,isDay){const ids={r:"rainContainer",s:"snowContainer",f:"fogOverlay",c:"cloudBg",u:"sunRays",l:"lightning"};
 for(const k of Object.values(ids)){document.getElementById(k).classList.remove("active");}
 if(code===0&&isDay){document.getElementById(ids.u).classList.add("active");}
-if(code>=1&&code<=3){document.getElementById(ids.c).classList.add("active");}
+if(code>=1&&code<=3){document.getElementById(ids.c).classList.add("active");if(code===3)document.getElementById(ids.c).classList.add("heavy");}
 if(code===2){document.getElementById(ids.u).classList.add("active");document.getElementById(ids.c).classList.add("active");}
 if(code===45||code===48){document.getElementById(ids.f).classList.add("active");document.getElementById(ids.c).classList.add("active");}
-if((code>=51&&code<=57)||(code>=61&&code<=67)||(code>=80&&code<=82)){spawnRain();document.getElementById(ids.r).classList.add("active");document.getElementById(ids.c).classList.add("active");}
+if((code>=51&&code<=57)||(code>=61&&code<=67)||(code>=80&&code<=82)){spawnRain();document.getElementById(ids.r).classList.add("active");document.getElementById(ids.c).classList.add("active");document.getElementById(ids.c).classList.add("heavy");}
 if((code>=71&&code<=77)||(code>=85&&code<=86)){spawnSnow();document.getElementById(ids.s).classList.add("active");document.getElementById(ids.c).classList.add("active");}
-if(code>=95&&code<=99){spawnRain();document.getElementById(ids.r).classList.add("active");document.getElementById(ids.c).classList.add("active");document.getElementById(ids.l).classList.add("active");}}
+if(code>=95&&code<=99){spawnRain();document.getElementById(ids.r).classList.add("active");document.getElementById(ids.c).classList.add("active");document.getElementById(ids.c).classList.add("heavy");document.getElementById(ids.l).classList.add("active");}}
 function getWMO(code) {
   return WMO_CODES[code] || { desc: '未知', emoji: '🌡️' };
 }
@@ -487,8 +491,8 @@ const WEATHER_BGS = {
   // 0=晴, 1-3=多云, 45-48=雾, 51-57=毛毛雨, 61-67=雨, 71-77=雪, 80-82=阵雨, 85-86=阵雪, 95-99=雷暴
   0:   { day: 'linear-gradient(135deg, #f5af19, #f12711)', night: 'linear-gradient(135deg, #0f0c29, #302b63)' },
   1:   { day: 'linear-gradient(135deg, #87CEEB, #6CA6DE)', night: 'linear-gradient(135deg, #1a1a2e, #16213e)' },
-  2:   { day: 'linear-gradient(135deg, #89ABE3, #B0C4DE)', night: 'linear-gradient(135deg, #1a1a2e, #2c3e50)' },
-  3:   { day: 'linear-gradient(135deg, #8e9eab, #bcc6cc)', night: 'linear-gradient(135deg, #1a1a2e, #2c3e50)' },
+  2:   { day: 'linear-gradient(135deg, #7da0d4, #a0bcdc, #b8cce0)', night: 'linear-gradient(135deg, #1a2332, #2a3a4a)' },
+  3:   { day: 'linear-gradient(135deg, #5b7a91, #7d9bb0, #9ab4c5)', night: 'linear-gradient(135deg, #1a2332, #2a3a4a, #1e2c38)' },
   45:  { day: 'linear-gradient(135deg, #B6B6B6, #8e9eab)', night: 'linear-gradient(135deg, #1a1a2e, #2c3e50)' },
   48:  { day: 'linear-gradient(135deg, #a0a0a0, #707070)', night: 'linear-gradient(135deg, #1a1a2e, #2c3e50)' },
   51:  { day: 'linear-gradient(135deg, #6b92c7, #3a5f8a)', night: 'linear-gradient(135deg, #0a0a1a, #1a1a3e)' },
