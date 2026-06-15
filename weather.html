@@ -9,7 +9,8 @@
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    background: var(--weather-bg, linear-gradient(135deg, #0f0c29, #302b63, #24243e));
+    transition: background 1s ease;
     min-height: 100vh;
     display: flex;
     align-items: flex-start;
@@ -22,23 +23,9 @@
   body::before {
     content: '';
     position: fixed;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent 70%);
-    top: -200px;
-    right: -200px;
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  body::after {
-    content: '';
-    position: fixed;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(236, 72, 153, 0.1), transparent 70%);
-    bottom: -200px;
-    left: -200px;
+    inset: 0;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.06), transparent 60%),
+                radial-gradient(circle at 70% 80%, rgba(255,255,255,0.04), transparent 50%);
     z-index: 0;
     pointer-events: none;
   }
@@ -459,6 +446,40 @@ function getWMO(code) {
   return WMO_CODES[code] || { desc: '未知', emoji: '🌡️' };
 }
 
+const WEATHER_BGS = {
+  // [weather_code]: { day: 'gradient', night: 'gradient' }
+  // 0=晴, 1-3=多云, 45-48=雾, 51-57=毛毛雨, 61-67=雨, 71-77=雪, 80-82=阵雨, 85-86=阵雪, 95-99=雷暴
+  0:   { day: 'linear-gradient(135deg, #f5af19, #f12711)', night: 'linear-gradient(135deg, #0f0c29, #302b63)' },
+  1:   { day: 'linear-gradient(135deg, #87CEEB, #6CA6DE)', night: 'linear-gradient(135deg, #1a1a2e, #16213e)' },
+  2:   { day: 'linear-gradient(135deg, #89ABE3, #B0C4DE)', night: 'linear-gradient(135deg, #1a1a2e, #2c3e50)' },
+  3:   { day: 'linear-gradient(135deg, #8e9eab, #bcc6cc)', night: 'linear-gradient(135deg, #1a1a2e, #2c3e50)' },
+  45:  { day: 'linear-gradient(135deg, #B6B6B6, #8e9eab)', night: 'linear-gradient(135deg, #1a1a2e, #2c3e50)' },
+  48:  { day: 'linear-gradient(135deg, #a0a0a0, #707070)', night: 'linear-gradient(135deg, #1a1a2e, #2c3e50)' },
+  51:  { day: 'linear-gradient(135deg, #6b92c7, #3a5f8a)', night: 'linear-gradient(135deg, #0a0a1a, #1a1a3e)' },
+  53:  { day: 'linear-gradient(135deg, #5a82b7, #2a4f7a)', night: 'linear-gradient(135deg, #0a0a1a, #1a1a3e)' },
+  55:  { day: 'linear-gradient(135deg, #4a72a7, #1a3f6a)', night: 'linear-gradient(135deg, #0a0a1a, #1a1a3e)' },
+  61:  { day: 'linear-gradient(135deg, #4b6cb7, #182848)', night: 'linear-gradient(135deg, #050510, #0a0a2e)' },
+  63:  { day: 'linear-gradient(135deg, #3a5ca7, #081838)', night: 'linear-gradient(135deg, #050510, #0a0a2e)' },
+  65:  { day: 'linear-gradient(135deg, #2a4c97, #000828)', night: 'linear-gradient(135deg, #020208, #050520)' },
+  80:  { day: 'linear-gradient(135deg, #5a7db7, #2a4d7a)', night: 'linear-gradient(135deg, #0a0a1a, #1a1a3e)' },
+  81:  { day: 'linear-gradient(135deg, #4a6da7, #1a3d6a)', night: 'linear-gradient(135deg, #0a0a1a, #1a1a3e)' },
+  82:  { day: 'linear-gradient(135deg, #3a5d97, #0a2d5a)', night: 'linear-gradient(135deg, #0a0a1a, #1a1a3e)' },
+  71:  { day: 'linear-gradient(135deg, #E6DADA, #C8D8E8)', night: 'linear-gradient(135deg, #1e2838, #2a3a4a)' },
+  73:  { day: 'linear-gradient(135deg, #D6D6D6, #B8C8D8)', night: 'linear-gradient(135deg, #1e2838, #2a3a4a)' },
+  75:  { day: 'linear-gradient(135deg, #C6C6C6, #A8B8C8)', night: 'linear-gradient(135deg, #1e2838, #2a3a4a)' },
+  85:  { day: 'linear-gradient(135deg, #D6D6D6, #B8C8D8)', night: 'linear-gradient(135deg, #1e2838, #2a3a4a)' },
+  86:  { day: 'linear-gradient(135deg, #C6C6C6, #A8B8C8)', night: 'linear-gradient(135deg, #1e2838, #2a3a4a)' },
+  95:  { day: 'linear-gradient(135deg, #2d1b4e, #1a1a2e)', night: 'linear-gradient(135deg, #0a0515, #1a0a2e)' },
+  96:  { day: 'linear-gradient(135deg, #2d1b4e, #1a1a2e)', night: 'linear-gradient(135deg, #0a0515, #1a0a2e)' },
+  99:  { day: 'linear-gradient(135deg, #2d1b4e, #1a1a2e)', night: 'linear-gradient(135deg, #0a0515, #1a0a2e)' },
+};
+
+function setWeatherBg(code, isDay) {
+  const cfg = WEATHER_BGS[code] || WEATHER_BGS[0];
+  const bg = isDay ? cfg.day : cfg.night;
+  document.body.style.setProperty('--weather-bg', bg);
+}
+
 async function fetchWeather() {
   const loading = document.getElementById('loading');
   const error = document.getElementById('error');
@@ -473,7 +494,7 @@ async function fetchWeather() {
     const res = await fetch(
       'https://api.open-meteo.com/v1/forecast?' +
       'latitude=36.06&longitude=103.79' +
-      '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,surface_pressure' +
+      '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,surface_pressure,is_day' +
       '&daily=temperature_2m_max,temperature_2m_min,weather_code' +
       '&timezone=Asia%2FShanghai&forecast_days=7'
     );
@@ -490,6 +511,7 @@ async function fetchWeather() {
 
     // Current weather
     const wmoCur = getWMO(cur.weather_code);
+    setWeatherBg(cur.weather_code, cur.is_day);
     document.getElementById('tempNow').textContent = Math.round(cur.temperature_2m);
     document.getElementById('feelsLike').textContent =
       `体感温度 ${Math.round(cur.apparent_temperature)}°C`;
